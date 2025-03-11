@@ -14,9 +14,7 @@ def get_gpx_files(directory):
 
 def clear_gpx_track(gpx_file):
     """
-    Check all lat/lon/ele values of the trackpoints of a given gpx file.
-    If the location and elevation data of a trackpoint has not changed compared to the previous trackpoint,
-    the trackpoint is removed from the gpx file.
+    Removes consecutive duplicate trackpoints based on lat, lon and ele.
     """
     # Register the custom namespace of gpx files, parse the xml structure and get root element
     ET.register_namespace('', 'http://www.topografix.com/GPX/1/1')
@@ -25,27 +23,26 @@ def clear_gpx_track(gpx_file):
     
     # Find the track segment (trkseg)
     trkseg = root.find('.//{http://www.topografix.com/GPX/1/1}trkseg')
+    if trkseg is None:
+        return gpx
+    
     points = trkseg.findall('{http://www.topografix.com/GPX/1/1}trkpt')
     
-    filtered_points = []
     previous_position = None  # (lat, lon, ele)
-    
-    for point in points:
+
+    for point in points[:]:  # Iterate over a copy to allow safe removal
         lat = float(point.attrib['lat'])
         lon = float(point.attrib['lon'])
-        ele = float(point.find('{http://www.topografix.com/GPX/1/1}ele').text)
+        ele_element = point.find('{http://www.topografix.com/GPX/1/1}ele')
+        ele = float(ele_element.text) if ele_element is not None else None
+        
         current_position = (lat, lon, ele)
         
-        if previous_position is None or current_position != previous_position:
-            filtered_points.append(point)
+        if current_position == previous_position:
+            trkseg.remove(point)
+        else:
             previous_position = current_position
-    
-    # Clear existing points and add filtered ones
-    for child in list(trkseg):
-        trkseg.remove(child)
-    for point in filtered_points:
-        trkseg.append(point)
-    
+
     return gpx
 
 
@@ -53,13 +50,12 @@ def write_gpx_file(gpx, file):
     """
     Saves the gpx data to the given file location.
     """
-    gpx.write(file, xml_declaration=True, encoding='utf-8', method="xml")  
+    gpx.write(file, xml_declaration=True, encoding='utf-8', method="xml")
 
 
 def main(directory):
     """
-    Script for clearing all trackpoints of a gpx file where the lat/lon is not different
-    to the previous trackpoint.
+    Processes all GPX files in a directory, removing consecutive duplicate trackpoints based on lat, lon and ele.
     """
     # Check if passed argument is existing directory
     if not os.path.isdir(directory):
