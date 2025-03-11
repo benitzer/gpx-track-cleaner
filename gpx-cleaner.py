@@ -14,25 +14,38 @@ def get_gpx_files(directory):
 
 def clear_gpx_track(gpx_file):
     """
-    Check all lat/lon values of the trackpoints of a given gpx file.
-    If the location data of a trackpoint has not changed compared to the previous trackpoint,
+    Check all lat/lon/ele values of the trackpoints of a given gpx file.
+    If the location and elevation data of a trackpoint has not changed compared to the previous trackpoint,
     the trackpoint is removed from the gpx file.
     """
     # Register the custom namespace of gpx files, parse the xml structure and get root element
     ET.register_namespace('', 'http://www.topografix.com/GPX/1/1')
     gpx = ET.parse(gpx_file)
     root = gpx.getroot()
-    previous_position = (0.0, 0.0)
-
-    # Iterate over all trackpoints and remove points from gpx where no movement occured
-    points = root[1][2].findall('{http://www.topografix.com/GPX/1/1}trkpt')
-    for child in points:
-        lat = float(child.attrib['lat'])
-        lon = float(child.attrib['lon'])
-        if lat == previous_position[0] and lon == previous_position[1]:
-            root[1][2].remove(child)
-        else:
-            previous_position = (lat, lon) 
+    
+    # Find the track segment (trkseg)
+    trkseg = root.find('.//{http://www.topografix.com/GPX/1/1}trkseg')
+    points = trkseg.findall('{http://www.topografix.com/GPX/1/1}trkpt')
+    
+    filtered_points = []
+    previous_position = None  # (lat, lon, ele)
+    
+    for point in points:
+        lat = float(point.attrib['lat'])
+        lon = float(point.attrib['lon'])
+        ele = float(point.find('{http://www.topografix.com/GPX/1/1}ele').text)
+        current_position = (lat, lon, ele)
+        
+        if previous_position is None or current_position != previous_position:
+            filtered_points.append(point)
+            previous_position = current_position
+    
+    # Clear existing points and add filtered ones
+    for child in list(trkseg):
+        trkseg.remove(child)
+    for point in filtered_points:
+        trkseg.append(point)
+    
     return gpx
 
 
@@ -40,7 +53,7 @@ def write_gpx_file(gpx, file):
     """
     Saves the gpx data to the given file location.
     """
-    gpx.write(file)  
+    gpx.write(file, xml_declaration=True, encoding='utf-8', method="xml")  
 
 
 def main(directory):
