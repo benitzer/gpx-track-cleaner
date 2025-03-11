@@ -79,7 +79,12 @@ def main(directory):
     for filename in gpx_files:
         gpx_file = os.path.join(directory, filename)
         cleared_gpx_data = clear_gpx_track(gpx_file)
-        write_gpx_file(cleared_gpx_data, os.path.join(output_dir, filename))
+        
+        # edit file names so that the cleaned file is called differently than the original
+        name, extension = filename.rsplit(".gpx", 1)  # Split at the last ".gpx"
+        filename_cleaned = f"{name}.cleaned.gpx"
+
+        write_gpx_file(cleared_gpx_data, os.path.join(output_dir, filename_cleaned))
 
 
 if __name__ == "__main__":
