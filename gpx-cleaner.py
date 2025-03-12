@@ -49,16 +49,16 @@ def clean_gpx_track(gpx_data):
 
     return gpx_data
 
-def keep_every_nth_trkpt(gpx_data, keep_every_nth=1):
+def keep_every_nth_trkpt(gpx_data, keep_every_nth_trkpt=1):
     """
-    Keeps every nth trkpt in gpx data (keep_every_nth has to be an int), others are deleted
+    Keeps every nth trkpt in gpx data (keep_every_nth_trkpt has to be an int), others are deleted
     -> ensures fewer data points
     -> less noise, smaller files
-    In practice, for example, a value of 5 for keep_every_nth is well suited (or 1 for no additional deletion)
+    In practice, for example, a value of 5 for keep_every_nth_trkpt is well suited (or 1 for no additional deletion)
         -> delivers about one entry per second (logging in Betaflight with 200 Hz) and makes nice smooth velocity calculation possible
-    keep_every_nth = 1 leads to no change (all entries are retained)
+    keep_every_nth_trkpt = 1 leads to no change (all entries are retained)
     """
-    if keep_every_nth == 0 or keep_every_nth == 1: # 0 is not allowed because of modulo operation, 1 does not change anything
+    if keep_every_nth_trkpt == 0 or keep_every_nth_trkpt == 1: # 0 is not allowed because of modulo operation, 1 does not change anything
         return gpx_data
 
     # get root element
@@ -74,7 +74,7 @@ def keep_every_nth_trkpt(gpx_data, keep_every_nth=1):
     entry_counter = 0
 
     for point in points[:]:  # Iterate over a copy to allow safe removal
-        if entry_counter % keep_every_nth != 0:
+        if entry_counter % keep_every_nth_trkpt != 0:
             trkseg.remove(point)
         entry_counter += 1
 
@@ -117,8 +117,8 @@ def main(directory):
 
         # clean gpx data (consecutive duplicate entries based on lat, lon and ele are removed)
         cleaned_gpx_data = clean_gpx_track(gpx_data)
-        # retain only every keep_every_nth trkpt
-        cleaned_gpx_data = keep_every_nth_trkpt(cleaned_gpx_data, keep_every_nth=5)
+        # retain only every keep_every_nth_trkpt trkpt
+        cleaned_gpx_data = keep_every_nth_trkpt(cleaned_gpx_data, keep_every_nth_trkpt=5)
 
         extensive_procecure = True  # if True, execution needs more time, but it can help in some rare cases
         if extensive_procecure:

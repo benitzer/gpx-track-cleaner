@@ -1,30 +1,47 @@
-# gpx-track-cleaner
-Python script for cleaning gpx tracks. Trackpoints with no change of the lat/lon-position are remove form the gpx data. Script can be used to prevent Strava to calculate auto-pause when importing an activity from a gpx file.
+# GPX Track Cleaner
 
-# Purpose
-When an activity is imported to Strava via gpx file, Strava automatically recalculates the moving time and pace. For the calculation the auto-pause option seems to be enabled, cause importing sometimes results in implausible moving time and pace.
-Consecutive trackpoints where the position did not change are detected as pause. The gpx-cleaner script removes trackpoints with consecutive same positions from the gpx file,
-so Strava won't detect any pauses. If activities are exported from Runtastic (Adidas Running), cleaned by the script and imported to Strava, the activity details
-on Strava sometimes diverge from the activity details on Runtastic by a few seconds but are plausible in general.
+A Python script for cleaning GPX tracks. It removes consecutive duplicate track points (based on latitude, longitude, and elevation) and allows retaining only every nth track point. Especially useful for processing GPS data from FPV drones with Betaflight.
 
-## Runtastic Activity Data
-![Runtastic Data](/readme-images/runtastic.jpg)
-## Strava Activity Data with cleaned gpx file
-![Strava Data](/readme-images/strava.jpg)
+## Purpose
+This script efficiently reduces and cleans GPX data for better analysis and visualization in software like GeoTracker, OsmAnd, or Google Earth Pro.
 
+### Use Cases
+- Post-flight analysis and visualization of FPV drone flights.
+- Improving data quality from Betaflight logs by removing redundant entries.
+- Preventing issues with flight visualization (e.g., incorrect speed calculations, display errors on maps).
 
-# Usage
-## Prerequisits
-- python needs to be installed
-- download gpx-cleaner.py
+## Installation & Requirements
+### Requirements
+- **Python** must be installed.
+- The script **gpx-cleaner.py** must be downloaded.
 
-## Execution
-Run from command line:
+## Usage
+### Configuration
+Before running, you can adjust the `keep_every_nth_trkpt` variable in the main function:
+- `1`: Keeps all remaining track points (no additional filtering).
+- `5`: Retains approximately one track point per second (at 200 Hz logging). This can help smooth out inaccuracies in speed calculation, reducing potential noise artifacts.
 
-```
+### Running the Script
+Use the following command in the terminal:
+```sh
 python3 gpx-cleaner.py <path-to-directory-with-gpx-files>
 ```
-Insert the path of the directory that contains the gpx files as argument.
+Replace `<path-to-directory-with-gpx-files>` with the directory containing your GPX files.
 
-## Result
-The cleaned gpx files are stored in a subdirectory `/output` of the passed directory.
+### Output
+- Cleaned GPX files are saved in a subfolder `/output` within the specified directory.
+- Duplicate entries are removed, and depending on the setting, only every nth track point is retained.
+
+## Example
+If your GPX files are in `/home/user/gpx_data`, run:
+```sh
+python3 gpx-cleaner.py /home/user/gpx_data
+```
+The cleaned files will be stored in `/home/user/gpx_data/output/`.
+
+## Forked From
+
+This project is a fork of [gpx-track-cleaner by codeOfJannik](https://github.com/codeOfJannik/gpx-track-cleaner). Thanks to the original author for their work!
+
+## License
+This script is open-source and released under the MIT license. Feel free to use and modify it!
