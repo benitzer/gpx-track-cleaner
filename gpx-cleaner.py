@@ -49,7 +49,7 @@ def clean_gpx_track(gpx_data):
 
     return gpx_data
 
-def keep_every_nth_trkpt(gpx_data, keep_every_nth_trkpt=1):
+def reduce_trkpt_density(gpx_data, keep_every_nth_trkpt=1):
     """
     Keeps every nth trkpt in gpx data (keep_every_nth_trkpt has to be an int), others are deleted
     -> ensures fewer data points
@@ -80,6 +80,14 @@ def keep_every_nth_trkpt(gpx_data, keep_every_nth_trkpt=1):
 
     return gpx_data
 
+def ordinal(n):
+    if 10 <= n % 100 <= 20:
+        suffix = "th"
+    else:
+        suffixes = {1: "st", 2: "nd", 3: "rd"}
+        suffix = suffixes.get(n % 10, "th")
+    return str(n) + suffix
+
 def write_gpx_file(gpx_data, file_path):
     """
     Saves the gpx data to the given file location.
@@ -87,14 +95,14 @@ def write_gpx_file(gpx_data, file_path):
     gpx_data.write(file_path, xml_declaration=True, encoding='utf-8', method="xml")
 
 
-def main(directory):
+def main(keep_every_nth_trkpt, directory):
     """
     Processes all GPX files in a directory, removing consecutive duplicate trackpoints based on lat, lon and ele.
     """
     # Check if passed argument is existing directory
     if not os.path.isdir(directory):
         print("Can't find directory ", directory)
-        sys.exit(0)
+        sys.exit(1)
 
     # Get all gpx files inside the given directory
     gpx_files = get_gpx_files(directory)
@@ -118,25 +126,36 @@ def main(directory):
         # clean gpx data (consecutive duplicate entries based on lat, lon and ele are removed)
         cleaned_gpx_data = clean_gpx_track(gpx_data)
         # retain only every keep_every_nth_trkpt trkpt
-        cleaned_gpx_data = keep_every_nth_trkpt(cleaned_gpx_data, keep_every_nth_trkpt=5)
+        cleaned_gpx_data = reduce_trkpt_density(cleaned_gpx_data, keep_every_nth_trkpt)
 
         extensive_procecure = True  # if True, execution needs more time, but it can help in some rare cases
-        if extensive_procecure:
+        if extensive_procecure and keep_every_nth_trkpt > 1:  # Re-cleaning only necessary if entries have been deleted
             # clean gpx data again, to ensure that no new consecutive duplicate entries were created by the deletion in the step before
             cleaned_gpx_data = clean_gpx_track(cleaned_gpx_data)
 
         # edit file names so that the cleaned file is called differently than the original
         name, extension = filename.rsplit(".gpx", 1)  # Split at the last ".gpx"
-        filename_cleaned = f"{name}.cleaned.gpx"
+        if keep_every_nth_trkpt == 1:
+            filename_cleaned = "{}.cleaned.gpx".format(name)
+        else:
+            filename_cleaned = "{}.cleaned_every{}DiffTrkpt.gpx".format(name, ordinal(keep_every_nth_trkpt))
 
         write_gpx_file(cleaned_gpx_data, os.path.join(output_dir, filename_cleaned))
+        print("file '{}' written".format(filename_cleaned))
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 2:
-        print("Too many arguments! Pass only one directory of gpx files!")
+    if len(sys.argv) > 3:
+        print("Too many arguments! Pass only one integer (keep_every_nth_trkpt) and one directory of gpx files!")
         sys.exit(1)
-    if len(sys.argv) < 2:
-        print("No argument found! Pass path of directory of gpx files as argument.")
+    if len(sys.argv) < 3:
+        print("Too few arguments! Pass one integer (keep_every_nth_trkpt) and one directory of gpx files as arguments.")
         sys.exit(1)
-    main(sys.argv[1])
+    if not sys.argv[1].isdigit() or int(sys.argv[1]) <= 0:
+        print("The given argument '{}' is not an positive int, but keep_every_nth_trkpt has to be a positive int.".format(sys.argv[1]))
+        sys.exit(1)
+    if not os.path.isdir(sys.argv[2]):
+        print("The given argument '{}' is not a path to a directory.".format(sys.argv[2]))
+        sys.exit(1)
+
+    main(int(sys.argv[1]), sys.argv[2])
