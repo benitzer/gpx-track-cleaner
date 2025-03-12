@@ -10,6 +10,19 @@ This script efficiently reduces and cleans GPX data for better analysis and visu
 - Improving data quality from Betaflight logs by removing redundant entries.
 - Preventing issues with flight visualization (e.g., incorrect speed calculations, display errors on maps).
 
+## Generating GPX Files from Betaflight
+
+If you are using an FPV drone with Betaflight and GPS logging enabled, you can generate GPX files using the following steps:
+
+1. **Enable GPS Logging** in Betaflight: Ensure that Blackbox logging is activated and GPS data is being recorded.
+2. **Carry out your drone flight**.
+3. **Download Blackbox Logs**: Retrieve the `.bbl` log files from your flight controller.
+4. **Convert to GPX**:
+   - Open the logs in **Betaflight Blackbox Explorer**.
+   - Use the **Export to GPX** function to generate the GPX files.
+
+These GPX files can now be processed with this script to remove redundant data and optimize them for further analysis.
+
 ## Installation & Requirements
 ### Requirements
 - **Python** must be installed.
