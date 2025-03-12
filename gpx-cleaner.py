@@ -12,9 +12,11 @@ def get_gpx_files(directory):
             files.append(filename)
     return files
 
-def clear_gpx_track(gpx_file):
+def clear_gpx_track(gpx_file, keep_every_nth):
     """
     Removes consecutive duplicate trackpoints based on lat, lon and ele.
+    In the result is just every keep_every_nth entry retained. -> ensures fewer data points -> less noise, smaller files
+        In practice, for example, a value of 5 for keep_every_nth is well suited (delivers about one entry per second (logging in Betaflight with 200 Hz) and makes nice smooth velocity calculation possible)
     """
     # Register the custom namespace of gpx files, parse the xml structure and get root element
     ET.register_namespace('', 'http://www.topografix.com/GPX/1/1')
@@ -29,6 +31,7 @@ def clear_gpx_track(gpx_file):
     points = trkseg.findall('{http://www.topografix.com/GPX/1/1}trkpt')
     
     previous_position = None  # (lat, lon, ele)
+    entry_counter = 0
 
     for point in points[:]:  # Iterate over a copy to allow safe removal
         lat = float(point.attrib['lat'])
@@ -42,6 +45,9 @@ def clear_gpx_track(gpx_file):
             trkseg.remove(point)
         else:
             previous_position = current_position
+            if entry_counter % keep_every_nth != 0:
+                trkseg.remove(point)
+            entry_counter += 1
 
     return gpx
 
@@ -78,7 +84,7 @@ def main(directory):
     # For each gpx file: clear track points and save new gpx to output dir
     for filename in gpx_files:
         gpx_file = os.path.join(directory, filename)
-        cleared_gpx_data = clear_gpx_track(gpx_file)
+        cleared_gpx_data = clear_gpx_track(gpx_file, 5)
         
         # edit file names so that the cleaned file is called differently than the original
         name, extension = filename.rsplit(".gpx", 1)  # Split at the last ".gpx"
