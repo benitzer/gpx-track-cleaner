@@ -47,6 +47,11 @@ The cleaned files will be stored in `/home/user/gpx_data/output/`.
 - Cleaned GPX files are saved in a subfolder `/output` within the specified directory.
 - Duplicate entries are removed, and depending on the setting, only every nth track point is retained.
 
+### Elevation Adjustment
+In addition to filtering track points, the script includes an `elevation_increase` parameter that allows increasing the elevation of all track points by a fixed number of meters. This is particularly useful for better visualization in Google Earth Pro, where terrain data can sometimes cause track points to be hidden beneath the ground. By increasing the elevation (e.g., by 20 meters), these points remain visible.
+
+The `elevation_increase` parameter is hardcoded within the script and is not passed via the command line. By default, it is set to `0` meters, meaning no elevation adjustment is applied. If you need to modify it, open `gpx-cleaner.py` and adjust the value manually.
+
 ## Forked From
 
 This project is a fork of [gpx-track-cleaner by codeOfJannik](https://github.com/codeOfJannik/gpx-track-cleaner). Thanks to the original author for their work!

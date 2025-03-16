@@ -80,6 +80,22 @@ def reduce_trkpt_density(gpx_data, keep_every_nth_trkpt=1):
 
     return gpx_data
 
+def increase_elevation(gpx_data, elevation_increase=20):
+    """
+    Increases the elevation of each trackpoint by a specified amount (default: 20m).
+    """
+    root = gpx_data.getroot()
+    trkseg = root.find('.//{http://www.topografix.com/GPX/1/1}trkseg')
+    if trkseg is None:
+        return gpx_data
+    
+    for point in trkseg.findall('{http://www.topografix.com/GPX/1/1}trkpt'):
+        ele_element = point.find('{http://www.topografix.com/GPX/1/1}ele')
+        if ele_element is not None and ele_element.text:
+            ele_element.text = str(float(ele_element.text) + elevation_increase)
+    
+    return gpx_data
+
 def ordinal(n):
     if 10 <= n % 100 <= 20:
         suffix = "th"
@@ -133,12 +149,19 @@ def main(keep_every_nth_trkpt, directory):
             # clean gpx data again, to ensure that no new consecutive duplicate entries were created by the deletion in the step before
             cleaned_gpx_data = clean_gpx_track(cleaned_gpx_data)
 
+        # increase elevation (if necessary)
+        # TODO: implement command line passing of parameter elevation_increase  # for a short test it was sufficient how it was implemented; adding a command line parameter would have only made everything more complex
+        elevation_increase = 0  # 0 for no increase of elevation
+        if elevation_increase:
+            cleaned_gpx_data = increase_elevation(cleaned_gpx_data, elevation_increase)
+
         # edit file names so that the cleaned file is called differently than the original
         name, extension = filename.rsplit(".gpx", 1)  # Split at the last ".gpx"
+        elevation_string = "" if not elevation_increase else "_elevatedBy{}m".format(elevation_increase)
         if keep_every_nth_trkpt == 1:
-            filename_cleaned = "{}.cleaned.gpx".format(name)
+            filename_cleaned = "{}.cleaned{}.gpx".format(name, elevation_string)
         else:
-            filename_cleaned = "{}.cleaned_every{}DiffTrkpt.gpx".format(name, ordinal(keep_every_nth_trkpt))
+            filename_cleaned = "{}.cleaned_every{}DiffTrkpt{}.gpx".format(name, ordinal(keep_every_nth_trkpt), elevation_string)
 
         write_gpx_file(cleaned_gpx_data, os.path.join(output_dir, filename_cleaned))
         print("file '{}' written".format(filename_cleaned))
