@@ -23,6 +23,24 @@ If you are using an FPV drone with Betaflight and GPS logging enabled, you can g
 
 These GPX files can now be processed with this script to remove redundant data and optimize them for further analysis.
 
+## Extracting GPX Data from GoPro Videos
+
+If your FPV drone's flight controller storage is full or no GPS logs were recorded, you can still obtain GPS data from GoPro videos. There are two main methods to do this:
+
+### Method 1: Using Telemetry Extractor
+- Use the [Telemetry Extractor](https://goprotelemetryextractor.com/gopro-gps-telemetry-extract) software.
+- The free version is sufficient for basic GPS data extraction (the paid full version is expensive, costing several hundred euros).
+- Telemetry Extractor is a web-based app, but the extraction process runs locally on your machine.
+- To use the free version, go to [this page](https://goprotelemetryextractor.com/free/), select **Free**, and enter an email address to access the tool.
+
+### Method 2: Using Gyroflow (Alternative Solution)
+If the Telemetry Extractor method is unavailable or does not work, you can extract metadata using Gyroflow:
+- Open the GoPro video file in **Gyroflow**.
+- In the bottom-left corner, open the **Motion Data** section.
+- Click **Export** and select **Export All Metadata**.
+- This will generate a JSON file containing all metadata from the GoPro clip. 
+- Although this is not a direct GPX file, you can extract the relevant GPS track information from the JSON file and convert it to GPX if needed.
+
 ## Installation & Requirements
 ### Requirements
 - **Python** must be installed.
